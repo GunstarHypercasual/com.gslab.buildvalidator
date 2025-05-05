@@ -17,6 +17,7 @@ public class BuildValidatorWindow : EditorWindow
     private const string KEY_VALIDATE_UNITY_VERSION = "BV_ValidateUnityVersion";
     private const string KEY_CREATE_CSV             = "BV_CreateCSVFile";
     private const string KEY_LANDSCAPE_GAME         = "BV_LandscapeGame";
+    private const string VERSION                    = "1.0.0";
 
     private bool createFolder;
     private bool validateListing;
@@ -36,7 +37,7 @@ public class BuildValidatorWindow : EditorWindow
     private readonly List<(string label, bool success)> stepStatus = new();
 
     [MenuItem("GSLab/Build Validator")]
-    public static void ShowWindow() => GetWindow<BuildValidatorWindow>("Build Validator");
+    public static void ShowWindow() => GetWindow<BuildValidatorWindow>($"Build Validator v{VERSION}");
 
     private void OnEnable()
     {
@@ -50,13 +51,25 @@ public class BuildValidatorWindow : EditorWindow
 
     private static string FindDefaultIcon()
     {
-        foreach (BuildTargetGroup g in Enum.GetValues(typeof(BuildTargetGroup)))
+        foreach (BuildTargetGroup group in Enum.GetValues(typeof(BuildTargetGroup)))
         {
-            var arr = PlayerSettings.GetIconsForTargetGroup(g);
-            if (arr is { Length: > 0 } && arr[0] != null)
+            NamedBuildTarget namedTarget;
+            try
             {
-                string p = AssetDatabase.GetAssetPath(arr[0]);
-                if (!string.IsNullOrEmpty(p)) return Path.GetFullPath(p);
+                namedTarget = NamedBuildTarget.FromBuildTargetGroup(group);
+            }
+            catch (ArgumentException)
+            {
+                // no valid mapping (eg. WebPlayer), so skip it
+                continue;
+            }
+
+            var icons = PlayerSettings.GetIcons(namedTarget, IconKind.Application);
+            if (icons != null && icons.Length > 0 && icons[0] != null)
+            {
+                var path = AssetDatabase.GetAssetPath(icons[0]);
+                if (!string.IsNullOrEmpty(path))
+                    return Path.GetFullPath(path);
             }
         }
         return string.Empty;
