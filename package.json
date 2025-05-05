@@ -1,0 +1,8 @@
+{
+  "name": "com.gslab.buildvalidator",
+  "version": "1.0.0",
+  "displayName": "Build Checklist Validator",
+  "description": "Checklist validator",
+  "keywords": ["editor","buildvalidator"],
+  "author": { "name": "GSLab", "email": "mrdragon2807@gmail.com" }
+}
