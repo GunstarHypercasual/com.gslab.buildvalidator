@@ -1,24 +1,20 @@
-﻿// Assets/Editor/ImageUtility.cs
-using System.IO;
-using UnityEngine;
-
-namespace GSLab.Utility
+﻿// ImageUtility.cs
+namespace GSLab.BuildValidator
 {
+    using UnityEngine;
+    using System.IO;
+
     public static class ImageUtility
     {
-        public static bool CheckImageSize(string imagePath, int width, int height)
+        public static bool CheckImageSize(string path, int w, int h)
         {
-            if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath)) return false;
-
-            byte[] bytes;
-            try { bytes = File.ReadAllBytes(imagePath); }
-            catch { return false; }
-
-            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-            bool loaded = tex.LoadImage(bytes, true);
-            bool result = loaded && tex.width == width && tex.height == height;
+            if (!File.Exists(path)) return false;
+            var data = File.ReadAllBytes(path);
+            var tex = new Texture2D(2, 2);
+            tex.LoadImage(data);
+            bool ok = tex.width == w && tex.height == h;
             Object.DestroyImmediate(tex);
-            return result;
+            return ok;
         }
     }
 }
