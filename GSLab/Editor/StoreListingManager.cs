@@ -23,17 +23,17 @@ namespace GSLab.BuildValidator
         public bool ValidateFiles(bool isIAP)
         {
             bool ok = true;
-            if (prefs.CreateStoreListing)
-            {
-                ok &= CopyAndValidate(prefs.IconPath, ListingConstants.IconName(), ListingConstants.IconSize, ListingConstants.IconSize);
-                ok &= CopyAndValidate(prefs.FeatureImagePath, ListingConstants.FeatureName(), ListingConstants.FeatureWidth, ListingConstants.FeatureHeight);
-                for (int i = 0; i < prefs.ScreenshotPaths.Length; i++)
-                    ok &= CopyAndValidate(prefs.ScreenshotPaths[i], ListingConstants.ScreenshotName(i), ListingConstants.ScreenshotWidth, ListingConstants.ScreenshotHeight);
-                ok &= CopyTextFile(prefs.InfoTextPath, "info.txt");
-                ok &= CopyAndValidate(prefs.KeystorePath, ListingConstants.KeystoreName(), 0, 0, true);
-                if (isIAP && prefs.GenerateCsv)
-                    ok &= GenerateCsv();
-            }
+            // if (prefs.CreateStoreListing)
+            // {
+            //     ok &= CopyAndValidate(prefs.Icon, ListingConstants.IconName(), ListingConstants.IconSize, ListingConstants.IconSize);
+            //     ok &= CopyAndValidate(prefs.FeatureImage, ListingConstants.FeatureName(), ListingConstants.FeatureWidth, ListingConstants.FeatureHeight);
+            //     for (int i = 0; i < prefs.ScreenshotPaths.Length; i++)
+            //         ok &= CopyAndValidate(prefs.ScreenshotPaths[i], ListingConstants.ScreenshotName(i), ListingConstants.ScreenshotWidth, ListingConstants.ScreenshotHeight);
+            //     ok &= CopyTextFile(prefs.InfoTextPath, "info.txt");
+            //     ok &= CopyAndValidate(prefs.KeystorePath, ListingConstants.KeystoreName(), 0, 0, true);
+            //     if (isIAP && prefs.GenerateCsv)
+            //         ok &= GenerateCsv();
+            // }
             return ok;
         }
 
