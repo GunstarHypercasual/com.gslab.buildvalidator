@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using UnityEditor.Build;    
 using UnityEditor;
 using UnityEngine;
@@ -49,6 +50,21 @@ namespace GSLab.BuildValidator
                     settings.Icon = defaults[0];
                     if (settings.Icon == null)
                         Debug.Log("Dcmp: No default icon found");
+                }
+            }
+
+            if (settings.KeystoreFile == null && PlayerSettings.Android.useCustomKeystore)
+            {
+                var ksPath = PlayerSettings.Android.keystoreName;
+                if (!string.IsNullOrEmpty(ksPath))
+                {
+                    var projectRoot = Application.dataPath.Substring(0, Application.dataPath.Length - "Assets".Length);
+                    if (Path.IsPathRooted(ksPath) && ksPath.StartsWith(projectRoot))
+                    {
+                        ksPath = "Assets" + ksPath.Substring(projectRoot.Length);
+                    }
+                    Debug.Log(Path.Combine(projectRoot, ksPath));
+                    settings.KeystoreFile = AssetDatabase.LoadAssetAtPath<DefaultAsset>(ksPath);
                 }
             }
 
@@ -111,7 +127,7 @@ namespace GSLab.BuildValidator
                 InfoText = EditorGUILayout.ObjectField("Info Text File (.txt)", InfoText, typeof(TextAsset), false) as TextAsset;
 
                 // Keystore
-                KeystoreFile = EditorGUILayout.ObjectField("Keystore File (.keystore)", KeystoreFile, typeof(DefaultAsset), false) as DefaultAsset;
+                KeystoreFile = EditorGUILayout.ObjectField("Keystore File (Assets/<name>.keystore)", KeystoreFile, typeof(DefaultAsset), false) as DefaultAsset;
 
                 // CSV toggle
                 GenerateCsv = EditorGUILayout.Toggle("Generate IAP CSV", GenerateCsv);
@@ -144,6 +160,17 @@ namespace GSLab.BuildValidator
             
             InfoText = null;
             KeystoreFile = null;
+            var ksPath = PlayerSettings.Android.keystoreName;
+            if (!string.IsNullOrEmpty(ksPath))
+            {
+                var projectRoot = Application.dataPath.Substring(0, Application.dataPath.Length - "Assets".Length);
+                if (Path.IsPathRooted(ksPath) && ksPath.StartsWith(projectRoot))
+                {
+                    ksPath = "Assets" + ksPath.Substring(projectRoot.Length);
+                }
+                Debug.Log(Path.Combine(projectRoot, ksPath));
+                KeystoreFile = AssetDatabase.LoadAssetAtPath<DefaultAsset>(ksPath);
+            }
         }
    
     }
