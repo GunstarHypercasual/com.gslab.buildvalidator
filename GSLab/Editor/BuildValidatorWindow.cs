@@ -1,7 +1,10 @@
 ﻿// BuildValidatorWindow.cs
+
+using System;
 using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -99,21 +102,52 @@ namespace GSLab.BuildValidator
                 return;
             }
 
-            var csvPath = Path.Combine(Application.dataPath, "iap_products.csv");
-            Debug.Log($"CSV path: {csvPath}");
-            using (var writer = new StreamWriter(csvPath, false, Encoding.UTF8))
+            var csvName = $"{PlayerSettings.applicationIdentifier}_iap";
+            var ext = ".csv";
+            var listCountry = new List<string>();
+            listCountry.Add("US");
+            listCountry.Add("VN");
+            foreach (var country in listCountry)
             {
-                Debug.Log("Start write csvs");
-                writer.WriteLine("Product ID,Title,Description,Price");
-                foreach (var p in filtered)
+                var csvPath = Path.Combine(Application.dataPath, $"{csvName}_{country}{ext}");
+                Debug.Log($"CSV path: {csvPath}");
+                using (var writer = new StreamWriter(csvPath, false, Encoding.UTF8))
                 {
-                    var price = $"US; {p.GetPriceString()}";
-                    string id = p.ID;
-                    string t = p.title;
-                    string desc = p.description;
-                    Debug.Log($"Product ID: {id}, Title: {t}, Description: {desc}");
+                    Debug.Log("Start write csvs");
+                    writer.WriteLine("Product ID,Title,Description,Price");
+                    foreach (var p in filtered)
+                    {
+                        var price = p.GetPriceString();
+                        var priceClean = price.Replace(" ", "").Replace("$", "");
+                        var priceString = priceClean;
+
+                        if (country == "VN")
+                        {
+                            if (!decimal.TryParse(priceClean, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture,
+                                    out var priceDecimal))
+                            {
+                                Debug.LogWarning($"Invalid price: {priceClean}");
+                                priceDecimal = 0m;
+                            }
+
+                            const decimal usdToVNDRate = 25200m;
+                            decimal vndAmount = priceDecimal * usdToVNDRate;
+                            Debug.Log($"vndAmount : {vndAmount}");
+                            string vndString = Math.Round(vndAmount, 2).ToString("F0", CultureInfo.InvariantCulture);
+                            Debug.Log($"vndString : {vndString}");
+                            priceString = vndString;
+                            Debug.Log($"Price: {priceString}");
+                        }
+
+                        var priceField = $"{country}; {priceString}";
+                        
+                        string id = p.ID;
+                        string t = p.title;
+                        string desc = p.description;
+                        Debug.Log($"Product ID: {id}, Title: {t}, Description: {desc}");
                     
-                    writer.WriteLine($"{id},{t},{desc},{price}");
+                        writer.WriteLine($"{id},{t},{desc},{priceField}");
+                    }
                 }
             }
 #else
