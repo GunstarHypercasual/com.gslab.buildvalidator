@@ -10,8 +10,6 @@ using UnityEngine;
 
 namespace GSLab.BuildValidator
 {
-
-
     public class BuildValidatorSettings : ScriptableObject
     {
         public bool CreateStoreListing = true;
@@ -130,7 +128,28 @@ namespace GSLab.BuildValidator
                 KeystoreFile = EditorGUILayout.ObjectField("Keystore File (Assets/<name>.keystore)", KeystoreFile, typeof(DefaultAsset), false) as DefaultAsset;
 
                 // CSV toggle
-                GenerateCsv = EditorGUILayout.Toggle("Generate IAP CSV", GenerateCsv);
+                GenerateCsv = EditorGUILayout.Toggle("Generate IAP CSV (must install Unipay)", GenerateCsv);
+                if (GenerateCsv)
+                {
+                    if (!AssetDatabase.IsValidFolder("Assets/UniPay"))
+                    {
+                        EditorUtility.DisplayDialog(
+                            "UniPay Not Detected",
+                            "Could not find an 'Assets/UniPay' folder.\n" +
+                            "Please import the UniPay.unitypackage into your Assets folder first.",
+                            "OK"
+                        );
+                        GenerateCsv = false; // refuse to enable
+                    }
+                    else
+                    {
+                        GenerateCsv = true;
+                    }
+                }
+                else
+                {
+                    GenerateCsv = false;
+                }
             }
 
             if (EditorGUI.EndChangeCheck())
