@@ -1,12 +1,15 @@
 ﻿// BuildValidatorSettings.cs
 
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
+using System.Linq;
+#if UNIPAY_PRESENT
+    using UniPay;
+#endif
 using UnityEditor.Build;    
 using UnityEditor;
 using UnityEngine;
+
 
 namespace GSLab.BuildValidator
 {
@@ -20,6 +23,9 @@ namespace GSLab.BuildValidator
         public List<Texture2D> Screenshots = new List<Texture2D>();
         public TextAsset InfoText;
         public DefaultAsset KeystoreFile;
+        #if UNIPAY_PRESENT
+        public int IAPCategoryIndex = 0;
+        #endif
 
         private const string AssetPath = "Assets/Editor/BuildValidatorSettings.asset";
         private const string AssetDirectory = "Assets/Editor";
@@ -150,6 +156,18 @@ namespace GSLab.BuildValidator
                 {
                     GenerateCsv = false;
                 }
+            }
+
+            if (GenerateCsv)
+            {
+                // public IAPCategory category
+#if UNIPAY_PRESENT
+                var asset = IAPScriptableObject.GetOrCreateSettings();
+                var dropdownNames = new string[] { "Choose Category... " }.Union(asset.categoryList.Select(element => element.ID)).ToArray();
+                
+                IAPCategoryIndex = Mathf.Clamp(IAPCategoryIndex, 0, dropdownNames.Length - 1);
+                IAPCategoryIndex = EditorGUILayout.Popup("Choose Category", IAPCategoryIndex, dropdownNames);
+#endif
             }
 
             if (EditorGUI.EndChangeCheck())
