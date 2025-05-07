@@ -3,24 +3,24 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using UnityEditor.Build;
+using UnityEditor.Build;    
+using UnityEditor;
+using UnityEngine;
 
 namespace GSLab.BuildValidator
 {
-    using UnityEditor;
-    using UnityEngine;
+
 
     public class BuildValidatorSettings : ScriptableObject
     {
         public bool CreateStoreListing = true;
         public bool GenerateCsv = false;
         
-        // Chuyển từ string path sang reference đến Object:
         public Texture2D Icon;
         public Texture2D FeatureImage;
         public List<Texture2D> Screenshots = new List<Texture2D>();
         public TextAsset InfoText;
-        public DefaultAsset KeystoreFile; // .keystore được import dưới dạng DefaultAsset
+        public DefaultAsset KeystoreFile;
 
         private const string AssetPath = "Assets/Editor/BuildValidatorSettings.asset";
         private const string AssetDirectory = "Assets/Editor";
@@ -30,13 +30,34 @@ namespace GSLab.BuildValidator
             if (!AssetDatabase.IsValidFolder(AssetDirectory))
                 AssetDatabase.CreateFolder("Assets", "Editor");
 
+            bool isNew = false;
             var settings = AssetDatabase.LoadAssetAtPath<BuildValidatorSettings>(AssetPath);
             if (settings == null)
             {
                 settings = CreateInstance<BuildValidatorSettings>();
-                AssetDatabase.CreateAsset(settings, AssetPath);
-                AssetDatabase.SaveAssets();
+                isNew = true;
             }
+
+            if (settings.Icon == null)
+            {
+                // var activeTarget = EditorUserBuildSettings.activeBuildTarget;
+                // var targetGroup = BuildPipeline.GetBuildTargetGroup(activeTarget);
+                // var namedTarget = NamedBuildTarget.FromBuildTargetGroup(targetGroup);
+                var defaults = PlayerSettings.GetIcons(NamedBuildTarget.Unknown, IconKind.Application);
+                if (defaults != null && defaults.Length > 0)
+                {
+                    settings.Icon = defaults[0];
+                    if (settings.Icon == null)
+                        Debug.Log("Dcmp: No default icon found");
+                }
+            }
+
+            if (isNew)
+            {
+                AssetDatabase.CreateAsset(settings, AssetPath);
+            }
+            
+            AssetDatabase.SaveAssets();
             return settings;
         }
 
@@ -50,22 +71,15 @@ namespace GSLab.BuildValidator
         {
             EditorGUI.BeginChangeCheck();
 
+            if (GUILayout.Button("Reset"))
+            {
+                ResetFields();
+            }
+
             CreateStoreListing = EditorGUILayout.Toggle("Create Store Listing", CreateStoreListing);
             if (CreateStoreListing)
             {
-                // Icon
-                if (Icon == null)
-                {
-                    var activeTarget  = EditorUserBuildSettings.activeBuildTarget;
-                    var targetGroup  = BuildPipeline.GetBuildTargetGroup(activeTarget);
-                    var namedTarget  = NamedBuildTarget.FromBuildTargetGroup(targetGroup);
-                    var defaults     = PlayerSettings.GetIcons(namedTarget, IconKind.Application);
-                    Debug.Log(defaults.Length);
-                    if (defaults != null && defaults.Length > 0)
-                    {
-                        Icon = defaults[0];
-                    }
-                }
+                // icon
                 Icon = EditorGUILayout.ObjectField("Icon (512×512)", Icon, typeof(Texture2D), false) as Texture2D;
 
                 // Feature Image
@@ -77,9 +91,15 @@ namespace GSLab.BuildValidator
 
                 EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button("-", GUILayout.Width(25)) && Screenshots.Count > 3)
+                {
                     Screenshots.RemoveAt(Screenshots.Count - 1);
+                }
+
                 if (GUILayout.Button("+", GUILayout.Width(25)))
+                {
                     Screenshots.Add(null);
+                }
+                    
                 EditorGUILayout.EndHorizontal();
 
                 for (int i = 0; i < Screenshots.Count; i++)
@@ -88,7 +108,7 @@ namespace GSLab.BuildValidator
                 }
 
                 // Info text file
-                InfoText = EditorGUILayout.ObjectField("Info Text File", InfoText, typeof(TextAsset), false) as TextAsset;
+                InfoText = EditorGUILayout.ObjectField("Info Text File (.txt)", InfoText, typeof(TextAsset), false) as TextAsset;
 
                 // Keystore
                 KeystoreFile = EditorGUILayout.ObjectField("Keystore File (.keystore)", KeystoreFile, typeof(DefaultAsset), false) as DefaultAsset;
@@ -98,9 +118,33 @@ namespace GSLab.BuildValidator
             }
 
             if (EditorGUI.EndChangeCheck())
+            {
                 Save();
+            }
         }
-        
+
+
+        private void ResetFields()
+        {
+            CreateStoreListing = true;
+            GenerateCsv = false;
+            Icon = null;
+            var defaults = PlayerSettings.GetIcons(NamedBuildTarget.Unknown, IconKind.Application);
+            if (defaults != null && defaults.Length > 0)
+            {
+                Icon = defaults[0];
+            }
+            FeatureImage = null;
+            
+            Screenshots.Clear();
+            while (Screenshots.Count < 3)
+            {
+                Screenshots.Add(null);
+            }
+            
+            InfoText = null;
+            KeystoreFile = null;
+        }
    
     }
     
