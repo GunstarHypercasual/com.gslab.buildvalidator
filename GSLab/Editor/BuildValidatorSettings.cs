@@ -156,6 +156,7 @@ namespace GSLab.BuildValidator
                     {
                         GenerateCsv = wantGenerate;
                     }
+                    Helpers.SyncUniPayDefine();
                 }
             }
 
