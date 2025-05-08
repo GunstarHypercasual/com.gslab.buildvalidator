@@ -30,7 +30,16 @@ namespace GSLab.BuildValidator
                 new BuildStep("Prepare Store Listing", () => listingManager.PrepareDirectory()),
                 new BuildStep("Build AAB", () => buildService.BuildAAB(target, isIAP)),
                 new BuildStep("Post-build manifest", () => manifestValidator.ValidateMerged(isIAP)),
-                new BuildStep("Validate Listing Files", () => listingManager.ValidateFiles(isIAP)),
+                new BuildStep("Validate Listing Files", () =>
+                {
+                    var result = listingManager.ValidateFiles(isIAP);
+                    foreach (var (label, success) in listingManager.ListingStepStatus)
+                    {
+                        status.Add((label, success));
+                    }
+
+                    return result;
+                }),
                 new BuildStep("Reveal Listing Folder", () => listingManager.RevealDirectory())
             };
 

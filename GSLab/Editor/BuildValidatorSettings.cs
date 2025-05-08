@@ -23,6 +23,7 @@ namespace GSLab.BuildValidator
         public List<Texture2D> Screenshots = new List<Texture2D>();
         public TextAsset InfoText;
         public DefaultAsset KeystoreFile;
+        public bool LandscapeGame = false;
         #if UNIPAY_PRESENT
         public int IAPCategoryIndex = 0;
         #endif
@@ -45,9 +46,6 @@ namespace GSLab.BuildValidator
 
             if (settings.Icon == null)
             {
-                // var activeTarget = EditorUserBuildSettings.activeBuildTarget;
-                // var targetGroup = BuildPipeline.GetBuildTargetGroup(activeTarget);
-                // var namedTarget = NamedBuildTarget.FromBuildTargetGroup(targetGroup);
                 var defaults = PlayerSettings.GetIcons(NamedBuildTarget.Unknown, IconKind.Application);
                 if (defaults != null && defaults.Length > 0)
                 {
@@ -95,6 +93,8 @@ namespace GSLab.BuildValidator
             {
                 ResetFields();
             }
+            
+            LandscapeGame = EditorGUILayout.Toggle("Landscape Game", LandscapeGame);
 
             CreateStoreListing = EditorGUILayout.Toggle("Create Store Listing", CreateStoreListing);
             if (CreateStoreListing)
@@ -127,7 +127,9 @@ namespace GSLab.BuildValidator
 
                 for (int i = 0; i < Screenshots.Count; i++)
                 {
-                    Screenshots[i] = EditorGUILayout.ObjectField($"Screenshot {i + 1} (1920×1080)", Screenshots[i], typeof(Texture2D), false) as Texture2D;
+                    int w = LandscapeGame ? ListingConstants.ScreenshotWidth : ListingConstants.ScreenshotHeight;
+                    int h = LandscapeGame ? ListingConstants.ScreenshotHeight : ListingConstants.ScreenshotWidth;
+                    Screenshots[i] = EditorGUILayout.ObjectField($"Screenshot {i + 1} ({w}×{h})", Screenshots[i], typeof(Texture2D), false) as Texture2D;
                 }
 
                 // Info text file

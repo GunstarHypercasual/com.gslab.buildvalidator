@@ -1,4 +1,7 @@
 ﻿// StoreListingManager.cs
+
+using System.Collections.Generic;
+
 namespace GSLab.BuildValidator
 {
     using UnityEditor;
@@ -10,32 +13,68 @@ namespace GSLab.BuildValidator
         readonly BuildValidatorSettings prefs;
         string dir;
         public StoreListingManager(BuildValidatorSettings prefs) => this.prefs = prefs;
+        public List<(string label, bool success)> ListingStepStatus { get; } = new List<(string, bool)>();
 
         public bool PrepareDirectory()
         {
-            if (!prefs.CreateStoreListing) return true;
-            dir = Path.Combine(Application.dataPath, "StoreListing");
-            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            if (!prefs.CreateStoreListing) 
+                return true;
+            var projectRoot = Directory.GetParent(Application.dataPath).FullName;
+            if (projectRoot != null)
+            {
+                dir = Path.Combine(projectRoot, "StoreListing");
+            }
+
+            if (Directory.Exists(dir))
+            {
+                Directory.Delete(dir, true);
+            }
+            
             Directory.CreateDirectory(dir);
+            
             return true;
         }
 
         public bool ValidateFiles(bool isIAP)
         {
+            ListingStepStatus.Clear();
             bool ok = true;
+
+            bool stepResult;
+            
             if (prefs.CreateStoreListing)
             {
-                ok &= CopyAndValidate(prefs.Icon, ListingConstants.IconName(), ListingConstants.IconSize, ListingConstants.IconSize);
-                ok &= CopyAndValidate(prefs.FeatureImage, ListingConstants.FeatureName(), ListingConstants.FeatureWidth, ListingConstants.FeatureHeight);
+                stepResult = CopyAndValidate(prefs.Icon, ListingConstants.IconName(), ListingConstants.IconSize, ListingConstants.IconSize);
+                ListingStepStatus.Add(("Icon (512x512)", stepResult));
+                ok &= stepResult;
+                
+                stepResult = CopyAndValidate(prefs.FeatureImage, ListingConstants.FeatureName(), ListingConstants.FeatureWidth, ListingConstants.FeatureHeight);
+                ListingStepStatus.Add(("Feature Image (1024x500)", stepResult));
+                ok &= stepResult;
+                
                 for (int i = 0; i < prefs.Screenshots.Count; i++)
                 {
-                    ok &= CopyAndValidate(prefs.Screenshots[i], ListingConstants.ScreenshotName(i), ListingConstants.ScreenshotWidth, ListingConstants.ScreenshotHeight);
+                    int w = prefs.LandscapeGame ? ListingConstants.ScreenshotWidth : ListingConstants.ScreenshotHeight;
+                    int h = prefs.LandscapeGame ? ListingConstants.ScreenshotHeight : ListingConstants.ScreenshotWidth;
+                    var label = $"Screenshot {i + 1} ({w}x{h})";
+                    stepResult = CopyAndValidate(prefs.Screenshots[i], ListingConstants.ScreenshotName(i), w, h);
+                    ListingStepStatus.Add((label, stepResult));
+                    ok &= stepResult;
                 }
-                ok &= CopyTextFile(prefs.InfoText, "info.txt");
-                ok &= CopyAsset(prefs.KeystoreFile, ListingConstants.KeystoreName());
+                
+                stepResult = CopyTextFile(prefs.InfoText, "info.txt");
+                ListingStepStatus.Add(("Info Text", stepResult));
+                ok &= stepResult;
+                
+                stepResult = CopyAsset(prefs.KeystoreFile, ListingConstants.KeystoreName());
+                ListingStepStatus.Add(("Keystore File", stepResult));
+                ok &= stepResult;
+                
                 if (isIAP && prefs.GenerateCsv)
                 {
-                    ok &= GenerateCsv();
+                    stepResult = GenerateCsv();
+                    ListingStepStatus.Add(("Generate CSV", stepResult));
+                    ok &= stepResult;
                 }
             }
             return ok;
@@ -103,8 +142,9 @@ namespace GSLab.BuildValidator
 
         bool GenerateCsv()
         {
-            File.WriteAllText(Path.Combine(dir, "iap_products.csv"), "id,price,description");
-            return true;
+            // File.WriteAllText(Path.Combine(dir, "iap_products.csv"), "id,price,description");
+            // return true;
+            return false;
         }
 
         public bool RevealDirectory() { EditorUtility.RevealInFinder(dir); return true; }
