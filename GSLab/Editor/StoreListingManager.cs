@@ -28,11 +28,15 @@ namespace GSLab.BuildValidator
                 ok &= CopyAndValidate(prefs.Icon, ListingConstants.IconName(), ListingConstants.IconSize, ListingConstants.IconSize);
                 ok &= CopyAndValidate(prefs.FeatureImage, ListingConstants.FeatureName(), ListingConstants.FeatureWidth, ListingConstants.FeatureHeight);
                 for (int i = 0; i < prefs.Screenshots.Count; i++)
+                {
                     ok &= CopyAndValidate(prefs.Screenshots[i], ListingConstants.ScreenshotName(i), ListingConstants.ScreenshotWidth, ListingConstants.ScreenshotHeight);
+                }
                 ok &= CopyTextFile(prefs.InfoText, "info.txt");
                 ok &= CopyAsset(prefs.KeystoreFile, ListingConstants.KeystoreName());
                 if (isIAP && prefs.GenerateCsv)
+                {
                     ok &= GenerateCsv();
+                }
             }
             return ok;
         }

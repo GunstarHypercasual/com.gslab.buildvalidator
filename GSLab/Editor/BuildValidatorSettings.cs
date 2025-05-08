@@ -107,7 +107,10 @@ namespace GSLab.BuildValidator
 
                 // Screenshots
                 EditorGUILayout.LabelField("Screenshots (min 3)");
-                while (Screenshots.Count < 3) Screenshots.Add(null);
+                while (Screenshots.Count < 3)
+                {
+                    Screenshots.Add(null);
+                }
 
                 EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button("-", GUILayout.Width(25)) && Screenshots.Count > 3)
@@ -133,11 +136,11 @@ namespace GSLab.BuildValidator
                 // Keystore
                 KeystoreFile = EditorGUILayout.ObjectField("Keystore File (Assets/<name>.keystore)", KeystoreFile, typeof(DefaultAsset), false) as DefaultAsset;
 
-                // CSV toggle
-                GenerateCsv = EditorGUILayout.Toggle("Generate IAP CSV (must install Unipay)", GenerateCsv);
-                if (GenerateCsv)
+                // CSV toggle && ensure only call 1 time
+                bool wantGenerate = EditorGUILayout.Toggle("Generate IAP CSV (must install Unipay)", GenerateCsv);
+                if (wantGenerate != GenerateCsv)
                 {
-                    if (!AssetDatabase.IsValidFolder("Assets/UniPay"))
+                    if (wantGenerate && !AssetDatabase.IsValidFolder("Assets/UniPay"))
                     {
                         EditorUtility.DisplayDialog(
                             "UniPay Not Detected",
@@ -149,18 +152,13 @@ namespace GSLab.BuildValidator
                     }
                     else
                     {
-                        GenerateCsv = true;
+                        GenerateCsv = wantGenerate;
                     }
-                }
-                else
-                {
-                    GenerateCsv = false;
                 }
             }
 
             if (GenerateCsv)
             {
-                // public IAPCategory category
 #if UNIPAY_PRESENT
                 var asset = IAPScriptableObject.GetOrCreateSettings();
                 var dropdownNames = new string[] { "Choose Category... " }.Union(asset.categoryList.Select(element => element.ID)).ToArray();

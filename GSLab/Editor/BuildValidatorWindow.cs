@@ -111,42 +111,45 @@ namespace GSLab.BuildValidator
             {
                 var csvPath = Path.Combine(Application.dataPath, $"{csvName}_{country}{ext}");
                 Debug.Log($"CSV path: {csvPath}");
-                using (var writer = new StreamWriter(csvPath, false, Encoding.UTF8))
+                using (var writer = new StreamWriter(csvPath, false, new UTF8Encoding(false)))
                 {
                     Debug.Log("Start write csvs");
-                    writer.WriteLine("Product ID,Title,Description,Price");
+                    writer.WriteLine("Product ID,Published State,Purchase Type,Auto Translate,Locale; Title; Description,Auto Fill Prices,Price,Pricing Template ID,EEA Withdrawal Right Type,Reduced VAT Rates,Communications and amusement taxes,Tokenized digital asset declared");
                     foreach (var p in filtered)
                     {
                         var price = p.GetPriceString();
                         var priceClean = price.Replace(" ", "").Replace("$", "");
-                        var priceString = priceClean;
+                        var priceDecimal = Convert.ToDecimal(priceClean);
+                        var multiplePriceDecimal = priceDecimal * 1000000m;
+                        var finalPrice = multiplePriceDecimal;
+                        var priceField = $"{finalPrice}";
 
                         if (country == "VN")
                         {
                             if (!decimal.TryParse(priceClean, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture,
-                                    out var priceDecimal))
+                                    out var priceCleanDec))
                             {
                                 Debug.LogWarning($"Invalid price: {priceClean}");
-                                priceDecimal = 0m;
+                                priceCleanDec = 0m;
                             }
 
                             const decimal usdToVNDRate = 25200m;
-                            decimal vndAmount = priceDecimal * usdToVNDRate;
-                            Debug.Log($"vndAmount : {vndAmount}");
-                            string vndString = Math.Round(vndAmount, 2).ToString("F0", CultureInfo.InvariantCulture);
-                            Debug.Log($"vndString : {vndString}");
-                            priceString = vndString;
-                            Debug.Log($"Price: {priceString}");
+                            finalPrice = priceCleanDec * usdToVNDRate * 1000000m;
+                            // Debug.Log($"finalPrice : {finalPrice}");
+                            priceField = $"{Math.Round(finalPrice, 2).ToString("F0", CultureInfo.InvariantCulture)}";
+                            Debug.Log($"vndString : {priceField}");
+                            // priceString = vndString;
+                            // Debug.Log($"Price: {priceString}");
                         }
-
-                        var priceField = $"{country}; {priceString}";
+                        
+                        Debug.Log($"finalPrice : {finalPrice}");
                         
                         string id = p.ID;
                         string t = p.title;
                         string desc = p.description;
                         Debug.Log($"Product ID: {id}, Title: {t}, Description: {desc}");
                     
-                        writer.WriteLine($"{id},{t},{desc},{priceField}");
+                        writer.WriteLine($"{id},published,managed_by_android,false,en-US; {t}; {desc},true,{priceField},,DIGITAL_CONTENT,,,false");
                     }
                 }
             }
