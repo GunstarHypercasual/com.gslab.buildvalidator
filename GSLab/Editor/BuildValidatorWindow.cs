@@ -57,7 +57,7 @@ namespace GSLab.BuildValidator
             
             if (GUILayout.Button("DEBUG - Generate CSV Only"))
             {
-                listingManager.GenerateCsv();
+                listingManager.GenerateCsv(true);
             }
 
             if (GUILayout.Button("DEBUG - Generate material folder"))

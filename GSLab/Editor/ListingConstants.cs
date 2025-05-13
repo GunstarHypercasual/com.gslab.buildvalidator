@@ -16,6 +16,6 @@ namespace GSLab.BuildValidator
 
     public static class BuildValidationConstants
     {
-        public const string VALIDATION_VERSION = "1.0.1";
+        public const string VALIDATION_VERSION = "1.0.3";
     }
 }

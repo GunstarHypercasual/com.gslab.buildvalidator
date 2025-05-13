@@ -148,14 +148,15 @@ namespace GSLab.BuildValidator
             return true;
         }
 
-        public bool GenerateCsv()
+        public bool GenerateCsv(bool isDebug = false)
         {
 #if UNIPAY_PRESENT
             Debug.Log("Generating CSV file...");
             var asset = IAPScriptableObject.GetOrCreateSettings();
+            Debug.Log($"asset.categoryList.Count: {asset.categoryList.Count}");
             int idx = prefs.IAPCategoryIndex;
             Debug.Log($"Category index: {idx}");
-            if (idx <= 0 || idx >= asset.categoryList.Count)
+            if (idx <= 0 || idx >= asset.categoryList.Count + 1)
             {
                 Debug.LogError("Invalid category index for CSV generation.");
                 return false;
@@ -224,7 +225,8 @@ namespace GSLab.BuildValidator
                         writer.WriteLine($"{id},published,managed_by_android,false,en-US; {t}; {desc},true,{priceField},,DIGITAL_CONTENT,,,false");
                     }
                 }
-                File.Copy(csvPath, Path.Combine(dir, $"{csvName}_{country}{ext}"), true);
+                if (!isDebug)
+                    File.Copy(csvPath, Path.Combine(dir, $"{csvName}_{country}{ext}"), true);
             }
             
 #else

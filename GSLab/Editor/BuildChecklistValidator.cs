@@ -1,4 +1,7 @@
 ﻿// BuildChecklistValidator.cs
+
+using static UnityEditor.AndroidArchitecture;
+
 namespace GSLab.BuildValidator
 {
     using UnityEditor;
@@ -19,6 +22,22 @@ namespace GSLab.BuildValidator
             buildService = new BuildPipelineService(prefs);
         }
 
+        private bool ValidateArchitectures()
+        {
+            var archs = PlayerSettings.Android.targetArchitectures;
+            bool hasArmv7 = (archs & ARMv7) == ARMv7;
+            bool hasArm64 = (archs & ARM64) == ARM64;
+            
+            if (!hasArmv7 || !hasArm64)
+            {
+                Helpers.ShowDialog("LOSERRRRRRRRRRRRRRRRRRRRRRRRRRRR", "You must select both ARMv7 and ARM64 architectures in Player Settings > Publishing Settings > Target Architectures.");
+                return false;
+            }
+
+            return true;
+
+        }
+
         public List<(string, bool)> RunAll(BuildTarget target, bool isIAP)
         {
             prefs.Save();
@@ -27,6 +46,7 @@ namespace GSLab.BuildValidator
             {
                 new BuildStep("Clear Console", () => { ConsoleUtility.Clear(); return true; }),
                 new BuildStep("Pre-build manifest", () => manifestValidator.ValidateCustom(isIAP)),
+                new BuildStep("Validate Target Architectures", ValidateArchitectures),
                 new BuildStep("Prepare Store Listing", () => listingManager.PrepareDirectory()),
                 new BuildStep("Build AAB", () => buildService.BuildAAB(target, isIAP)),
                 new BuildStep("Post-build manifest", () => manifestValidator.ValidateMerged(isIAP)),
