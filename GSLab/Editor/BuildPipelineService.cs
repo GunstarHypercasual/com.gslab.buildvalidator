@@ -12,7 +12,7 @@ namespace GSLab.BuildValidator
     public class BuildPipelineService
     {
         public BuildPipelineService(BuildValidatorSettings _) {}
-        public bool BuildAAB(BuildTarget target, bool isIAP)
+        public bool BuildAAB(BuildTarget target, bool isIAP, bool isAPK)
         {
             string projectRoot = Directory.GetParent(Application.dataPath)?.FullName;
             string gameName   = Regex.Replace(PlayerSettings.productName.Trim(), "\\s+", string.Empty);
@@ -26,8 +26,9 @@ namespace GSLab.BuildValidator
                 return false;
             }
             string aabName = isIAP ? $"{pkg}_{version}_{versionCode}.aab" : $"{pkg}_no_iap_{version}_{versionCode}.aab";
-            string outPath = Path.Combine(dir, aabName);
-            EditorUserBuildSettings.buildAppBundle = true;
+            string apkName = isIAP ? $"{pkg}_{version}_{versionCode}.aab" : $"{pkg}_no_iap_{version}_{versionCode}.apk";
+            string outPath = isAPK ? Path.Combine(dir, apkName) : Path.Combine(dir, aabName);
+            EditorUserBuildSettings.buildAppBundle = !isAPK;
             BuildPlayerOptions opts = new()
             {
                 scenes = EditorBuildSettingsScene.GetActiveSceneList(EditorBuildSettings.scenes),
@@ -43,7 +44,7 @@ namespace GSLab.BuildValidator
                 return false;
             }
             string storeDir = Path.Combine(projectRoot, "StoreListing");
-            string destAAB = Path.Combine(storeDir, aabName);
+            string destAAB = isAPK ? Path.Combine(storeDir, apkName) : Path.Combine(storeDir, aabName);
             try
             {
                 File.Copy(outPath, destAAB, true);
@@ -57,5 +58,6 @@ namespace GSLab.BuildValidator
             }
             return true;
         }
+        
     }
 }

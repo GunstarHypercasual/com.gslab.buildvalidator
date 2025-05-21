@@ -27,6 +27,7 @@ namespace GSLab.BuildValidator
         #if UNIPAY_PRESENT
         public int IAPCategoryIndex = 0;
         #endif
+        public bool APKBuild = true;
 
         private const string AssetPath = "Assets/Editor/BuildValidatorSettings.asset";
         private const string AssetDirectory = "Assets/Editor";
@@ -132,6 +133,9 @@ namespace GSLab.BuildValidator
                     Screenshots[i] = EditorGUILayout.ObjectField($"Screenshot {i + 1} ({w}×{h})", Screenshots[i], typeof(Texture2D), false) as Texture2D;
                 }
 
+                // APK Build
+                APKBuild = EditorGUILayout.Toggle("Build APK", APKBuild);
+                
                 // Info text file
                 InfoText = EditorGUILayout.ObjectField("Info Text File (.txt)", InfoText, typeof(TextAsset), false) as TextAsset;
 
