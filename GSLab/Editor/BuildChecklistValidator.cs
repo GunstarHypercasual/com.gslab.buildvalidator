@@ -60,6 +60,15 @@ namespace GSLab.BuildValidator
 
                     return result;
                 }),
+                new BuildStep("Upload to Drive", () => 
+                {
+                    if (prefs.UploadToDrive)
+                    {
+                        var driveManager = new DriveUploadManager(prefs);
+                        return driveManager.UploadToDrive();
+                    }
+                    return true;
+                }),
                 new BuildStep("Reveal Listing Folder", () => listingManager.RevealDirectory())
             };
 

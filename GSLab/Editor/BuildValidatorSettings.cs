@@ -28,6 +28,7 @@ namespace GSLab.BuildValidator
         public int IAPCategoryIndex = 0;
         #endif
         public bool APKBuild = true;
+        public bool UploadToDrive = false;
 
         private const string AssetPath = "Assets/Editor/BuildValidatorSettings.asset";
         private const string AssetDirectory = "Assets/Editor";
@@ -135,7 +136,17 @@ namespace GSLab.BuildValidator
 
                 // APK Build
                 APKBuild = EditorGUILayout.Toggle("Build APK", APKBuild);
-                
+
+                // Add our new checkbox here
+                UploadToDrive = EditorGUILayout.Toggle("Upload to Drive", UploadToDrive);
+
+                // Add the Upload button
+                if (UploadToDrive && GUILayout.Button("Upload", GUILayout.Height(30)))
+                {
+                    // Show success popup when button is clicked
+                    Helpers.ShowDialog("Upload Successful", "Files have been successfully uploaded to Drive!");
+                }
+
                 // Info text file
                 InfoText = EditorGUILayout.ObjectField("Info Text File (.txt)", InfoText, typeof(TextAsset), false) as TextAsset;
 
@@ -186,6 +197,10 @@ namespace GSLab.BuildValidator
         {
             CreateStoreListing = true;
             GenerateCsv = false;
+
+            APKBuild = true;
+            UploadToDrive = false;
+
             Icon = null;
             var defaults = PlayerSettings.GetIcons(NamedBuildTarget.Unknown, IconKind.Application);
             if (defaults != null && defaults.Length > 0)
