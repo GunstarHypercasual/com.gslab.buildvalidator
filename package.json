@@ -1,6 +1,6 @@
 {
   "name": "com.gslab.buildvalidator",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "displayName": "Build Checklist Validator",
   "description": "Checklist validator",
   "keywords": ["editor","buildvalidator"],
