@@ -38,7 +38,7 @@ namespace GSLab.BuildValidator
 
         }
 
-        public List<(string, bool)> RunAll(BuildTarget target, bool isIAP)
+        public List<(string, bool)> RunAll(BuildTarget target, bool isIAP, bool isAPK)
         {
             prefs.Save();
             var status = new List<(string, bool)>();
@@ -48,7 +48,7 @@ namespace GSLab.BuildValidator
                 new BuildStep("Pre-build manifest", () => manifestValidator.ValidateCustom(isIAP)),
                 new BuildStep("Validate Target Architectures", ValidateArchitectures),
                 new BuildStep("Prepare Store Listing", () => listingManager.PrepareDirectory()),
-                new BuildStep("Build AAB", () => buildService.BuildAAB(target, isIAP)),
+                new BuildStep("Build AAB", () => buildService.BuildAAB(target, isIAP, isAPK)),
                 new BuildStep("Post-build manifest", () => manifestValidator.ValidateMerged(isIAP)),
                 new BuildStep("Validate Listing Files", () =>
                 {
@@ -59,6 +59,15 @@ namespace GSLab.BuildValidator
                     }
 
                     return result;
+                }),
+                new BuildStep("Upload to Drive", () => 
+                {
+                    if (prefs.UploadToDrive)
+                    {
+                        var driveManager = new DriveUploadManager(prefs);
+                        return driveManager.UploadToDrive();
+                    }
+                    return true;
                 }),
                 new BuildStep("Reveal Listing Folder", () => listingManager.RevealDirectory())
             };

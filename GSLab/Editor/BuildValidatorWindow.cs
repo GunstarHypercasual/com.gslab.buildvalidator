@@ -49,9 +49,9 @@ namespace GSLab.BuildValidator
             GUI.backgroundColor = new Color(0.2f, 0.6f, 1f);
             
             if (GUILayout.Button("Run No-IAP Build", GUILayout.MinWidth(200), GUILayout.Height(30)))
-                stepStatus = validator.RunAll(BuildTarget.Android, false);
+                stepStatus = validator.RunAll(BuildTarget.Android, false, settings.APKBuild);
             if (GUILayout.Button("Run IAP Build", GUILayout.MinWidth(200), GUILayout.Height(30)))
-                stepStatus = validator.RunAll(BuildTarget.Android, true);
+                stepStatus = validator.RunAll(BuildTarget.Android, true, settings.APKBuild);
             
             GUI.backgroundColor = prevBG;
             

@@ -177,58 +177,46 @@ namespace GSLab.BuildValidator
 
             var csvName = $"{PlayerSettings.applicationIdentifier}_iap";
             var ext = ".csv";
-            var listCountry = new List<string>();
-            listCountry.Add("US");
-            listCountry.Add("VN");
-            foreach (var country in listCountry)
+            var csvPath = Path.Combine(Application.dataPath, $"{csvName}{ext}");
+            Debug.Log($"CSV path: {csvPath}");
+            using (var writer = new StreamWriter(csvPath, false, new UTF8Encoding(false)))
             {
-                var csvPath = Path.Combine(Application.dataPath, $"{csvName}_{country}{ext}");
-                Debug.Log($"CSV path: {csvPath}");
-                using (var writer = new StreamWriter(csvPath, false, new UTF8Encoding(false)))
+                Debug.Log("Start write csvs");
+                writer.WriteLine("Product ID,Title,Description,US Price,VND Price");
+                foreach (var p in filtered)
                 {
-                    Debug.Log("Start write csvs");
-                    writer.WriteLine("Product ID,Published State,Purchase Type,Auto Translate,Locale; Title; Description,Auto Fill Prices,Price,Pricing Template ID,EEA Withdrawal Right Type,Reduced VAT Rates,Communications and amusement taxes,Tokenized digital asset declared");
-                    foreach (var p in filtered)
-                    {
-                        var price = p.GetPriceString();
-                        var priceClean = price.Replace(" ", "").Replace("$", "");
-                        var priceDecimal = Convert.ToDecimal(priceClean);
-                        var multiplePriceDecimal = priceDecimal * 1000000m;
-                        var finalPrice = multiplePriceDecimal;
-                        var priceField = $"{finalPrice}";
+                    var price = p.GetPriceString();
+                    var priceClean = price.Replace(" ", "").Replace("$", "");
+                    var priceDecimal = Convert.ToDecimal(priceClean);
+                    var multiplePriceDecimal = priceDecimal * 1000000m;
+                    var finalPrice = multiplePriceDecimal;
+                    var priceFieldUS = $"{finalPrice}";
 
-                        if (country == "VN")
-                        {
-                            if (!decimal.TryParse(priceClean, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture,
-                                    out var priceCleanDec))
-                            {
-                                Debug.LogWarning($"Invalid price: {priceClean}");
-                                priceCleanDec = 0m;
-                            }
-
-                            const decimal usdToVNDRate = 25200m;
-                            finalPrice = priceCleanDec * usdToVNDRate * 1000000m;
-                            // Debug.Log($"finalPrice : {finalPrice}");
-                            priceField = $"{Math.Round(finalPrice, 2).ToString("F0", CultureInfo.InvariantCulture)}";
-                            Debug.Log($"vndString : {priceField}");
-                            // priceString = vndString;
-                            // Debug.Log($"Price: {priceString}");
-                        }
-                        
-                        Debug.Log($"finalPrice : {finalPrice}");
-                        
-                        string id = p.ID;
-                        string t = p.title;
-                        string desc = p.description;
-                        Debug.Log($"Product ID: {id}, Title: {t}, Description: {desc}");
+                    if (!decimal.TryParse(priceClean, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture,
+                            out var priceCleanDec))
+                    	{
+                        	Debug.LogWarning($"Invalid price: {priceClean}");
+                        	priceCleanDec = 0m;
+                    	}
+					const decimal usdToVNDRate = 25200m;
+					var finalPriceVN = priceCleanDec * usdToVNDRate * 1000000m;
+					var priceFieldVN = $"{Math.Round(finalPriceVN, 2).ToString("F0", CultureInfo.InvariantCulture)}";
+                    Debug.Log($"vndString : {priceFieldVN}");
                     
-                        writer.WriteLine($"{id},published,managed_by_android,false,en-US; {t}; {desc},true,{priceField},,DIGITAL_CONTENT,,,false");
-                    }
+                    Debug.Log($"finalPrice : {finalPriceVN}");
+                    
+                    string id = p.ID;
+                    string t = p.title;
+                    string desc = p.description;
+                    Debug.Log($"Product ID: {id}, Title: {t}, Description: {desc}");
+                
+                    writer.WriteLine($"{id},{t},{desc},{priceFieldUS},{priceFieldVN}");
                 }
-                if (!isDebug)
-                    File.Copy(csvPath, Path.Combine(dir, $"{csvName}_{country}{ext}"), true);
             }
-            
+            if (!isDebug)
+			{
+                File.Copy(csvPath, Path.Combine(dir, $"{csvName}{ext}"), true);
+			}
 #else
         Debug.LogError("UNIPAY_PRESENT does not exist in defines symbol");
 #endif
