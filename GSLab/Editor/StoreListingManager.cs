@@ -35,10 +35,21 @@ namespace GSLab.BuildValidator
 
             if (Directory.Exists(dir))
             {
-                Directory.Delete(dir, true);
+                if (prefs.OverWriteStoreListing)
+                {
+                    Debug.Log("StoreListing directory already exists, overwriting...");
+                }
+                else
+                {
+                    Directory.Delete(dir, true);
+                    Directory.Delete(dir, true);
+                    Directory.CreateDirectory(dir);
+                }
             }
-            
-            Directory.CreateDirectory(dir);
+            else
+            {
+                Directory.CreateDirectory(dir);
+            }
             
             return true;
         }
@@ -107,8 +118,14 @@ namespace GSLab.BuildValidator
                 Helpers.ShowDialog("Error", "Wrong size " + name + " - " + srcPath);
                 return false;
             }
+
+            string destPath = Path.Combine(dir, name);
+            if (prefs.OverWriteStoreListing && File.Exists(destPath))
+            {
+                Debug.Log($"Overwriting existing file: {destPath}");
+            }
             
-            File.Copy(srcPath, Path.Combine(dir, name), true);
+            File.Copy(srcPath, destPath, true);
             return true;
         }
 

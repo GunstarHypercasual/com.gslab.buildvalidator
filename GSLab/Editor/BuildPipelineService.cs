@@ -11,7 +11,12 @@ namespace GSLab.BuildValidator
 
     public class BuildPipelineService
     {
-        public BuildPipelineService(BuildValidatorSettings _) {}
+        private readonly BuildValidatorSettings prefs;
+
+        public BuildPipelineService(BuildValidatorSettings prefs)
+        {
+            this.prefs = prefs;
+        }
         public bool BuildAndroid(BuildTarget target, bool isIAP, bool isAPK = true)
         {
             Debug.Log($"Build Android for target: {target}, IAP: {isIAP}, APK: {isAPK}");
@@ -64,6 +69,10 @@ namespace GSLab.BuildValidator
             
             try 
             {
+                if (File.Exists(copyDestination) && prefs.OverWriteStoreListing)
+                {
+                    Debug.Log($"Overwriting existing file at {copyDestination}");
+                }
                 File.Copy(buildPath, copyDestination, true);
                 Debug.Log($"Copied build to {copyDestination}");
                 return true;
