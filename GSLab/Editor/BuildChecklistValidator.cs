@@ -48,7 +48,7 @@ namespace GSLab.BuildValidator
                 new BuildStep("Pre-build manifest", () => manifestValidator.ValidateCustom(isIAP)),
                 new BuildStep("Validate Target Architectures", ValidateArchitectures),
                 new BuildStep("Prepare Store Listing", () => listingManager.PrepareDirectory()),
-                new BuildStep("Build AAB", () => buildService.BuildAndroid(target, isIAP, isAPK)),
+                new BuildStep("Build Android", () => buildService.BuildAndroid(target, isIAP, isAPK)),
                 new BuildStep("Post-build manifest", () => manifestValidator.ValidateMerged(isIAP)),
                 new BuildStep("Validate Listing Files", () =>
                 {

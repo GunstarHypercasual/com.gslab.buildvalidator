@@ -26,7 +26,7 @@ namespace GSLab.BuildValidator
                 return false;
             }
             string aabName = isIAP ? $"{pkg}_{version}_{versionCode}.aab" : $"{pkg}_no_iap_{version}_{versionCode}.aab";
-            string apkName = isIAP ? $"{pkg}_{version}_{versionCode}.aab" : $"{pkg}_no_iap_{version}_{versionCode}.apk";
+            string apkName = isIAP ? $"{pkg}_{version}_{versionCode}.apk" : $"{pkg}_no_iap_{version}_{versionCode}.apk";
             string storeDir = Path.Combine(projectRoot, "StoreListing");
 
             EditorUserBuildSettings.buildAppBundle = true;
