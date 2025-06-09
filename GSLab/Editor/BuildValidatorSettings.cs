@@ -29,6 +29,7 @@ namespace GSLab.BuildValidator
         #endif
         public bool APKBuild = true;
         public bool UploadToDrive = false;
+        public bool OverWriteStoreListing = false;
 
         private const string AssetPath = "Assets/Editor/BuildValidatorSettings.asset";
         private const string AssetDirectory = "Assets/Editor";
@@ -101,6 +102,9 @@ namespace GSLab.BuildValidator
             CreateStoreListing = EditorGUILayout.Toggle("Create Store Listing", CreateStoreListing);
             if (CreateStoreListing)
             {
+                // overwrite
+                OverWriteStoreListing = EditorGUILayout.Toggle("Overwrite StoreListing Folder", OverWriteStoreListing);
+                
                 // icon
                 Icon = EditorGUILayout.ObjectField("Icon (512×512)", Icon, typeof(Texture2D), false) as Texture2D;
 
@@ -200,6 +204,8 @@ namespace GSLab.BuildValidator
 
             APKBuild = true;
             UploadToDrive = false;
+            OverWriteStoreListing = false;
+
 
             Icon = null;
             var defaults = PlayerSettings.GetIcons(NamedBuildTarget.Unknown, IconKind.Application);

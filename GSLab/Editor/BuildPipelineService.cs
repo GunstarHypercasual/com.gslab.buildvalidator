@@ -11,11 +11,16 @@ namespace GSLab.BuildValidator
 
     public class BuildPipelineService
     {
-        public BuildPipelineService(BuildValidatorSettings _) {}
-        public bool BuildAAB(BuildTarget target, bool isIAP, bool isAPK)
+        private readonly BuildValidatorSettings prefs;
+
+        public BuildPipelineService(BuildValidatorSettings prefs)
         {
+            this.prefs = prefs;
+        }
+        public bool BuildAndroid(BuildTarget target, bool isIAP, bool isAPK = true)
+        {
+            Debug.Log($"Build Android for target: {target}, IAP: {isIAP}, APK: {isAPK}");
             string projectRoot = Directory.GetParent(Application.dataPath)?.FullName;
-            string gameName   = Regex.Replace(PlayerSettings.productName.Trim(), "\\s+", string.Empty);
             string pkg = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android).Replace('.', '_');
             string version = PlayerSettings.bundleVersion;
             int versionCode = PlayerSettings.Android.bundleVersionCode;
@@ -26,13 +31,31 @@ namespace GSLab.BuildValidator
                 return false;
             }
             string aabName = isIAP ? $"{pkg}_{version}_{versionCode}.aab" : $"{pkg}_no_iap_{version}_{versionCode}.aab";
-            string apkName = isIAP ? $"{pkg}_{version}_{versionCode}.aab" : $"{pkg}_no_iap_{version}_{versionCode}.apk";
-            string outPath = isAPK ? Path.Combine(dir, apkName) : Path.Combine(dir, aabName);
-            EditorUserBuildSettings.buildAppBundle = !isAPK;
+            string apkName = isIAP ? $"{pkg}_{version}_{versionCode}.apk" : $"{pkg}_no_iap_{version}_{versionCode}.apk";
+            string storeDir = Path.Combine(projectRoot, "StoreListing");
+
+            EditorUserBuildSettings.buildAppBundle = true;
+            string aabOutputPath = Path.Combine(dir, aabName);
+            bool aabSuccess = BuildAndCopy(target, aabOutputPath, Path.Combine(storeDir, aabName));
+
+            bool apkSuccess = true;
+            if (isAPK)
+            {
+                Debug.Log("Building APK...");
+                EditorUserBuildSettings.buildAppBundle = false;
+                string apkOutputPath = Path.Combine(dir, apkName);
+                apkSuccess = BuildAndCopy(target, apkOutputPath, Path.Combine(storeDir, apkName));
+            }
+            
+            return aabSuccess && apkSuccess;
+        }
+
+        private bool BuildAndCopy(BuildTarget target, string buildPath, string copyDestination)
+        {
             BuildPlayerOptions opts = new()
             {
                 scenes = EditorBuildSettingsScene.GetActiveSceneList(EditorBuildSettings.scenes),
-                locationPathName = outPath,
+                locationPathName = buildPath,
                 target = target,
                 options = BuildOptions.None
             };
@@ -40,23 +63,28 @@ namespace GSLab.BuildValidator
             var rep = BuildPipeline.BuildPlayer(opts);
             if (rep.summary.result != UnityEditor.Build.Reporting.BuildResult.Succeeded)
             {
-                Debug.LogError("Build failed: " + rep.summary.result);
+                Debug.LogError($"Build failed for {buildPath}: {rep.summary.result}");
                 return false;
             }
-            string storeDir = Path.Combine(projectRoot, "StoreListing");
-            string destAAB = isAPK ? Path.Combine(storeDir, apkName) : Path.Combine(storeDir, aabName);
-            try
+            
+            try 
             {
-                File.Copy(outPath, destAAB, true);
-                Debug.Log($"Copied AAB to {destAAB}");
+                if (File.Exists(copyDestination) && prefs.OverWriteStoreListing)
+                {
+                    Debug.Log($"Overwriting existing file at {copyDestination}");
+                }
+                File.Copy(buildPath, copyDestination, true);
+                Debug.Log($"Copied build to {copyDestination}");
+                return true;
+
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Can not copy AAB {ex.Message}");
-                Helpers.ShowDialog("Failure", "Can not copy file aab");
+                Debug.LogError($"Cannot copy build file: {ex.Message}");
+                Helpers.ShowDialog("Failure", $"Cannot copy build file to {copyDestination}");
                 return false;
+
             }
-            return true;
         }
         
     }
